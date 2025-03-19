@@ -24,6 +24,7 @@ Adafruit_Fingerprint finger = Adafruit_Fingerprint(&Serial2);
 #define MOTOR_PIN_2 5
 #define MOTOR_PIN_3 6
 #define MOTOR_PIN_4 7
+#define MOTOR_PIN_5 12
 
 // Déclarations des pins des boutons
 #define BUTTON_UP_PIN 8
@@ -42,6 +43,7 @@ Servo servo1;
 Servo servo2;
 Servo servo3;
 Servo servo4;
+Servo servo5;
 
 // Déclarations des fonctions
 void setupMotors();
