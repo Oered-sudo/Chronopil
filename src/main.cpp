@@ -4,6 +4,8 @@
 #include <Adafruit_Fingerprint.h>
 #include <EEPROM.h>
 #include <Servo.h>
+#include <RTClib.h>
+#include "display_manager.h"
 
 // Déclarations des constantes et des variables
 #define SCREEN_WIDTH 128
@@ -42,7 +44,6 @@ Servo servo4;
 
 // Déclarations des fonctions
 void setupMotors();
-void setupDisplay();
 void setupFingerprintSensor();
 void checkBatteryLevel();
 void displayMenu();
@@ -56,10 +57,15 @@ void controlServo(Servo &servo, int angle);
 void setupUltrasonicSensor();
 long readUltrasonicDistance();
 
+RTC_DS3231 rtc;
+char password[5] = "0000"; // Mot de passe initial
+char inputPassword[5] = "";
+int passwordIndex = 0;
+
 void setup() {
   Serial.begin(115200);
+  initDisplay(display, rtc);
   setupMotors();
-  setupDisplay();
   setupFingerprintSensor();
   checkBatteryLevel();
   displayMenu();
@@ -71,6 +77,9 @@ void setup() {
 void loop() {
   handleAlarms();
   handleButtons();
+  displayTime(display, rtc);
+  displayCalendar(display, rtc);
+  handlePasswordSelector(display, inputPassword, passwordIndex);
 }
 
 void setupMotors() {
@@ -78,16 +87,6 @@ void setupMotors() {
   pinMode(MOTOR_PIN_2, OUTPUT);
   pinMode(MOTOR_PIN_3, OUTPUT);
   pinMode(MOTOR_PIN_4, OUTPUT);
-}
-
-void setupDisplay() {
-  if(!display.begin(SSD1306_I2C_ADDRESS, OLED_RESET)) {
-    Serial.println(F("SSD1306 allocation failed"));
-    for(;;);
-  }
-  display.display();
-  delay(2000);
-  display.clearDisplay();
 }
 
 void setupFingerprintSensor() {
