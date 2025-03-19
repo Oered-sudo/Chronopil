@@ -6,6 +6,7 @@
 #include <Servo.h>
 #include <RTClib.h>
 #include "display_manager.h"
+#include "security.h"
 
 // Déclarations des constantes et des variables
 #define SCREEN_WIDTH 128
@@ -66,7 +67,7 @@ void setup() {
   Serial.begin(115200);
   initDisplay(display, rtc);
   setupMotors();
-  setupFingerprintSensor();
+  setupSecurity();
   checkBatteryLevel();
   displayMenu();
   setupButtons();
@@ -80,6 +81,19 @@ void loop() {
   displayTime(display, rtc);
   displayCalendar(display, rtc);
   handlePasswordSelector(display, inputPassword, passwordIndex);
+
+  // Exemple d'utilisation des fonctions de sécurité
+  if (checkFingerprint()) {
+    Serial.println("Fingerprint verified!");
+  }
+
+  // Enregistrer une nouvelle empreinte digitale avec l'ID 1
+  if (enrollFingerprint(1)) {
+    Serial.println("Fingerprint enrolled!");
+  }
+
+  // Supprimer une empreinte digitale avec l'ID 1
+  deleteFingerprint(1);
 }
 
 void setupMotors() {
