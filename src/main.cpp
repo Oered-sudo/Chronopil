@@ -8,6 +8,10 @@
 #include "display_manager.h"
 #include "security.h"
 #include <vector>
+#include "rtc_manager.h"
+#include "password_manager.h"
+#include "alarm_manager.h"
+#include "servo_manager.h"
 
 // Déclarations des constantes et des variables
 #define SCREEN_WIDTH 128
@@ -77,46 +81,26 @@ void checkAlarms(RTC_DS3231 &rtc);
 void displayAlarms(Adafruit_SSD1306 &display);
 
 RTC_DS3231 rtc;
-char password[5] = "0000"; // Mot de passe initial
-char inputPassword[5] = "";
+char inputPassword[5] = "0000";
 int passwordIndex = 0;
 
 void setup() {
   Serial.begin(115200);
-  initDisplay(display, rtc);
-  setupMotors();
+  initDisplay(display);
+  initRTC(rtc);
   setupSecurity();
-  checkBatteryLevel();
-  displayMenu();
-  setupButtons();
   setupServos();
-  setupIRSensor();
-
-  // Ajouter des alarmes de test
-  addAlarm(8, 30); // Alarme à 8h30
-  addAlarm(14, 45); // Alarme à 14h45
+  addAlarm(8, 30); // Exemple d'alarme
 }
 
 void loop() {
-  handleAlarms();
-  handleButtons();
   displayTime(display, rtc);
   displayCalendar(display, rtc);
   handlePasswordSelector(display, inputPassword, passwordIndex);
-
-  // Vérifier les alarmes
-  checkAlarms(rtc);
-
-  // Afficher les alarmes
-  displayAlarms(display);
-
-  // Exemple d'utilisation des fonctions de sécurité
+  checkAlarms(rtc, display);
   if (checkFingerprint()) {
     Serial.println("Fingerprint verified!");
   }
-
-  // Fermer la boîte à pilules si nécessaire
-  closePillbox();
 }
 
 void setupMotors() {

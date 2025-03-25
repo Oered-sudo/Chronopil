@@ -1,21 +1,13 @@
 #include "display_manager.h"
 
-void initDisplay(Adafruit_SSD1306 &display, RTC_DS3231 &rtc) {
-  if(!display.begin(SSD1306_I2C_ADDRESS, OLED_RESET)) {
+void initDisplay(Adafruit_SSD1306 &display) {
+  if (!display.begin(SSD1306_I2C_ADDRESS, OLED_RESET)) {
     Serial.println(F("SSD1306 allocation failed"));
-    for(;;);
+    for (;;);
   }
   display.display();
   delay(2000);
   display.clearDisplay();
-
-  if (!rtc.begin()) {
-    Serial.println("Couldn't find RTC");
-    while (1);
-  }
-  if (rtc.lostPower()) {
-    rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
-  }
 }
 
 void displayTime(Adafruit_SSD1306 &display, RTC_DS3231 &rtc) {
