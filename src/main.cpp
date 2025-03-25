@@ -7,6 +7,7 @@
 #include <RTClib.h>
 #include "display_manager.h"
 #include "security.h"
+#include <vector>
 
 // Déclarations des constantes et des variables
 #define SCREEN_WIDTH 128
@@ -24,7 +25,6 @@ Adafruit_Fingerprint finger = Adafruit_Fingerprint(&Serial2);
 #define MOTOR_PIN_2 5
 #define MOTOR_PIN_3 6
 #define MOTOR_PIN_4 7
-#define MOTOR_PIN_5 12
 
 // Déclarations des pins des boutons
 #define BUTTON_UP_PIN 8
@@ -43,7 +43,17 @@ Servo servo1;
 Servo servo2;
 Servo servo3;
 Servo servo4;
-Servo servo5;
+Servo servoPillbox; // Nouveau servomoteur pour la boîte à pilules
+
+// Structure pour représenter une alarme
+struct Alarm {
+  int hour;    // Heure de l'alarme
+  int minute;  // Minute de l'alarme
+  bool active; // Si l'alarme est active
+};
+
+// Liste des alarmes
+std::vector<Alarm> alarms;
 
 // Déclarations des fonctions
 void setupMotors();
@@ -59,6 +69,12 @@ void setupServos();
 void controlServo(Servo &servo, int angle);
 void setupUltrasonicSensor();
 long readUltrasonicDistance();
+void setupIRSensor();
+bool isPresenceDetected();
+void closePillbox(); // Fonction pour fermer la boîte à pilules
+void addAlarm(int hour, int minute);
+void checkAlarms(RTC_DS3231 &rtc);
+void displayAlarms(Adafruit_SSD1306 &display);
 
 RTC_DS3231 rtc;
 char password[5] = "0000"; // Mot de passe initial
@@ -74,7 +90,11 @@ void setup() {
   displayMenu();
   setupButtons();
   setupServos();
-  setupUltrasonicSensor();
+  setupIRSensor();
+
+  // Ajouter des alarmes de test
+  addAlarm(8, 30); // Alarme à 8h30
+  addAlarm(14, 45); // Alarme à 14h45
 }
 
 void loop() {
@@ -84,18 +104,19 @@ void loop() {
   displayCalendar(display, rtc);
   handlePasswordSelector(display, inputPassword, passwordIndex);
 
+  // Vérifier les alarmes
+  checkAlarms(rtc);
+
+  // Afficher les alarmes
+  displayAlarms(display);
+
   // Exemple d'utilisation des fonctions de sécurité
   if (checkFingerprint()) {
     Serial.println("Fingerprint verified!");
   }
 
-  // Enregistrer une nouvelle empreinte digitale avec l'ID 1
-  if (enrollFingerprint(1)) {
-    Serial.println("Fingerprint enrolled!");
-  }
-
-  // Supprimer une empreinte digitale avec l'ID 1
-  deleteFingerprint(1);
+  // Fermer la boîte à pilules si nécessaire
+  closePillbox();
 }
 
 void setupMotors() {
@@ -176,6 +197,7 @@ void setupServos() {
   servo2.attach(5); // Pin du servo 2
   servo3.attach(6); // Pin du servo 3
   servo4.attach(7); // Pin du servo 4
+  servoPillbox.attach(8); // Pin du servomoteur pour la boîte à pilules
 }
 
 void controlServo(Servo &servo, int angle) {
@@ -202,4 +224,63 @@ long readUltrasonicDistance() {
   long distance = duration * 0.034 / 2;
 
   return distance;
+}
+
+void setupIRSensor() {
+  // Logique pour configurer le capteur IR
+}
+
+bool isPresenceDetected() {
+  // Logique pour détecter la présence avec le capteur IR
+  return false;
+}
+
+void closePillbox() {
+  // Exemple : fermer la boîte à pilules en déplaçant le servomoteur à 0°
+  controlServo(servoPillbox, 0);
+  delay(1000); // Attendre que le servomoteur atteigne la position
+}
+
+// Ajouter une nouvelle alarme
+void addAlarm(int hour, int minute) {
+  Alarm newAlarm = {hour, minute, true};
+  alarms.push_back(newAlarm);
+  Serial.print("Alarme ajoutée : ");
+  Serial.print(hour);
+  Serial.print(":");
+  Serial.println(minute);
+}
+
+// Vérifier si une alarme doit être déclenchée
+void checkAlarms(RTC_DS3231 &rtc) {
+  DateTime now = rtc.now();
+  for (auto &alarm : alarms) {
+    if (alarm.active && now.hour() == alarm.hour && now.minute() == alarm.minute) {
+      Serial.println("Alarme déclenchée !");
+      // Ajoutez ici la logique pour déclencher une action (exemple : sonnerie, affichage, etc.)
+      alarm.active = false; // Désactiver l'alarme après déclenchement
+    }
+  }
+}
+
+// Afficher les alarmes sur l'écran OLED
+void displayAlarms(Adafruit_SSD1306 &display) {
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(SSD1306_WHITE);
+  display.setCursor(0, 0);
+  display.println(F("Alarmes :"));
+
+  int y = 10; // Position verticale pour afficher les alarmes
+  for (const auto &alarm : alarms) {
+    display.setCursor(0, y);
+    display.print(alarm.hour);
+    display.print(":");
+    if (alarm.minute < 10) display.print("0"); // Ajouter un zéro pour les minutes < 10
+    display.print(alarm.minute);
+    display.print(alarm.active ? " (Active)" : " (Inactive)");
+    y += 10; // Espacement entre les lignes
+  }
+
+  display.display();
 }
