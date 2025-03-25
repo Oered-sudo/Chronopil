@@ -47,7 +47,9 @@ Servo servo1;
 Servo servo2;
 Servo servo3;
 Servo servo4;
-Servo servoPillbox; // Nouveau servomoteur pour la boîte à pilules
+
+
+#define ELECTROMAGNET_PIN 8 // Pin to control the electromagnet
 
 // Structure pour représenter une alarme
 struct Alarm {
@@ -79,6 +81,9 @@ void closePillbox(); // Fonction pour fermer la boîte à pilules
 void addAlarm(int hour, int minute);
 void checkAlarms(RTC_DS3231 &rtc);
 void displayAlarms(Adafruit_SSD1306 &display);
+void setupElectromagnet();
+void lockPillbox();
+void unlockPillbox();
 
 RTC_DS3231 rtc;
 char inputPassword[5] = "0000";
@@ -89,17 +94,22 @@ void setup() {
   initDisplay(display);
   initRTC(rtc);
   setupSecurity();
-  setupServos();
-  addAlarm(8, 30); // Exemple d'alarme
+  setupElectromagnet(); // Initialize the electromagnet
+  addAlarm(8, 30, 2, DateTime(2025, 12, 31));
 }
 
 void loop() {
   displayTime(display, rtc);
   displayCalendar(display, rtc);
   handlePasswordSelector(display, inputPassword, passwordIndex);
-  checkAlarms(rtc, display);
+  checkAlarms(rtc);
+  displayAlarms(display);
+
   if (checkFingerprint()) {
     Serial.println("Fingerprint verified!");
+    unlockPillbox(); // Unlock the pillbox when the fingerprint is verified
+    delay(5000);     // Keep it unlocked for 5 seconds
+    lockPillbox();   // Lock the pillbox again
   }
 }
 
@@ -220,9 +230,7 @@ bool isPresenceDetected() {
 }
 
 void closePillbox() {
-  // Exemple : fermer la boîte à pilules en déplaçant le servomoteur à 0°
-  controlServo(servoPillbox, 0);
-  delay(1000); // Attendre que le servomoteur atteigne la position
+  lockPillbox(); // Lock the pillbox using the electromagnet
 }
 
 // Ajouter une nouvelle alarme
@@ -267,4 +275,19 @@ void displayAlarms(Adafruit_SSD1306 &display) {
   }
 
   display.display();
+}
+
+void setupElectromagnet() {
+  pinMode(ELECTROMAGNET_PIN, OUTPUT);
+  digitalWrite(ELECTROMAGNET_PIN, LOW); // Start with the electromagnet off
+}
+
+void lockPillbox() {
+  digitalWrite(ELECTROMAGNET_PIN, HIGH); // Turn on the electromagnet to lock
+  Serial.println("Pillbox locked.");
+}
+
+void unlockPillbox() {
+  digitalWrite(ELECTROMAGNET_PIN, LOW); // Turn off the electromagnet to unlock
+  Serial.println("Pillbox unlocked.");
 }

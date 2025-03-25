@@ -178,3 +178,18 @@ void deleteFingerprint(uint8_t id) {
     Serial.println("Could not delete");
   }
 }
+
+void setupElectromagnet() {
+  pinMode(ELECTROMAGNET_PIN, OUTPUT);
+  digitalWrite(ELECTROMAGNET_PIN, LOW); // Start with the electromagnet off
+}
+
+void lockPillbox() {
+  digitalWrite(ELECTROMAGNET_PIN, HIGH); // Turn on the electromagnet to lock
+  Serial.println("Pillbox locked.");
+}
+
+void unlockPillbox() {
+  digitalWrite(ELECTROMAGNET_PIN, LOW); // Turn off the electromagnet to unlock
+  Serial.println("Pillbox unlocked.");
+}

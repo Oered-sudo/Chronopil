@@ -7,9 +7,11 @@
 #include "constants.h"
 
 struct Alarm {
-  int hour;
-  int minute;
-  bool active;
+  int hour;         // Hour of the alarm
+  int minute;       // Minute of the alarm
+  bool active;      // Whether the alarm is active
+  int intervalDays; // Interval in days between alarms
+  DateTime limit;   // Limit date for the alarm
 };
 
 void addAlarm(int hour, int minute);
