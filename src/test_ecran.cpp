@@ -12,8 +12,6 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 // Boutons pour naviguer
 #define BUTTON_UP_PIN 2
 #define BUTTON_DOWN_PIN 3
-#define BUTTON_LEFT_PIN 4
-#define BUTTON_RIGHT_PIN 5
 #define BUTTON_SELECT_PIN 6
 
 // Définition des fonctions de menu
@@ -33,8 +31,6 @@ LCDML_create(0);
 void setup() {
   pinMode(BUTTON_UP_PIN, INPUT_PULLUP);
   pinMode(BUTTON_DOWN_PIN, INPUT_PULLUP);
-  pinMode(BUTTON_LEFT_PIN, INPUT_PULLUP);
-  pinMode(BUTTON_RIGHT_PIN, INPUT_PULLUP);
   pinMode(BUTTON_SELECT_PIN, INPUT_PULLUP);
 
   Serial.begin(115200);
@@ -49,7 +45,7 @@ void setup() {
   display.clearDisplay();
 
   // Initialisation du menu
-  LCDML_setup(3, 1, 0, 0);
+  LCDML_setup(3); // 3 lignes visibles dans le menu
 }
 
 // Fonction pour afficher le menu
@@ -69,7 +65,7 @@ void displayMenu() {
 // Fonction pour gérer les boutons
 void handleButtons() {
   if (digitalRead(BUTTON_UP_PIN) == LOW) {
-    LCDML.BT_setup();
+    LCDML.BT_up();
     delay(200);
   }
   if (digitalRead(BUTTON_DOWN_PIN) == LOW) {
