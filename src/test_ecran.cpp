@@ -27,6 +27,46 @@ LCDML_add(2, LCDML_0, 3, "Parametres", mFunc_settings);
 // Initialisation de l'objet menu
 LCDML_create(0);
 
+// Fonction pour effacer l'écran
+void lcdml_menu_clear() {
+  display.clearDisplay();
+}
+
+// Fonction pour afficher le menu
+void lcdml_menu_display() {
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(SSD1306_WHITE);
+
+  // Afficher le menu
+  uint8_t n_max = (LCDML.MENU_getChilds() >= 3) ? 3 : LCDML.MENU_getChilds();
+  uint8_t i = LCDML.MENU_getScroll();
+  uint8_t maxi = n_max + i;
+  uint8_t n = 0;
+
+  LCDMenuLib2_menu *tmp;
+  if ((tmp = LCDML.MENU_getDisplayedObj()) != NULL) {
+    do {
+      if (tmp->checkCondition()) {
+        if (n == LCDML.MENU_getCursorPos()) {
+          display.print(F("> "));
+        } else {
+          display.print(F("  "));
+        }
+
+        char content_text[20];
+        LCDML_getContent(content_text, tmp->getID());
+        display.println(content_text);
+
+        i++;
+        n++;
+      }
+    } while (((tmp = tmp->getSibling(1)) != NULL) && (i < maxi));
+  }
+
+  display.display();
+}
+
 // Configuration initiale
 void setup() {
   pinMode(BUTTON_UP_PIN, INPUT_PULLUP);
@@ -36,7 +76,7 @@ void setup() {
   Serial.begin(115200);
 
   // Initialisation de l'écran OLED
-  if (!display.begin(0x3C, OLED_RESET)) { // Adresse I2C par défaut : 0x3C
+  if (!display.begin(SSD1306_I2C_ADDRESS, OLED_RESET)) { // Adresse I2C par défaut : 0x3C
     Serial.println(F("SSD1306 allocation failed"));
     for (;;);
   }
@@ -46,20 +86,6 @@ void setup() {
 
   // Initialisation du menu
   LCDML_setup(3); // 3 lignes visibles dans le menu
-}
-
-// Fonction pour afficher le menu
-void displayMenu() {
-  display.clearDisplay();
-  display.setTextSize(1);
-  display.setTextColor(SSD1306_WHITE);
-
-  display.setCursor(0, 0);
-  display.println(F("Menu Principal:"));
-
-  // Afficher le menu
-  LCDML.loop();
-  display.display();
 }
 
 // Fonction pour gérer les boutons
@@ -81,7 +107,7 @@ void handleButtons() {
 // Boucle principale
 void loop() {
   handleButtons();
-  displayMenu();
+  LCDML.loop();
 }
 
 // Fonction pour le menu "Calendrier"
