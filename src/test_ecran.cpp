@@ -21,33 +21,13 @@ void mFunc_calendrier(uint8_t param);
 void mFunc_alarm(uint8_t param);
 void mFunc_settings(uint8_t param);
 
-// Variables pour le calendrier
-int selectedYear = 2025;
-int selectedMonth = 1;
-int selectedDay = 1;
-
-// Nombre de jours dans chaque mois
-const int daysInMonth[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-
-// Noms des mois
-const char *monthNames[] = {
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-};
-
-// Fonction pour vérifier si une année est bissextile
-bool isLeapYear(int year) {
-  return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
-}
-
 // Définition du menu avec LCDMenuLib2
-LCDMenuLib2_menu LCDML_0 (255, 0, 0, NULL, NULL); // Root menu
-LCDMenuLib2_menu LCDML_0_1 (0, 1, 0, mFunc_calendrier, NULL); // Calendrier
-LCDMenuLib2_menu LCDML_0_2 (0, 2, 0, mFunc_alarm, NULL);      // Alarmes
-LCDMenuLib2_menu LCDML_0_3 (0, 3, 0, mFunc_settings, NULL);   // Paramètres
+LCDML_add(0, LCDML_0, 1, "Calendrier", mFunc_calendrier);
+LCDML_add(1, LCDML_0, 2, "Alarmes", mFunc_alarm);
+LCDML_add(2, LCDML_0, 3, "Parametres", mFunc_settings);
 
 // Initialisation de l'objet menu
-LCDMenuLib2 LCDML(LCDML_0, 3, 1, NULL, NULL, NULL);
+LCDML_create(0);
 
 // Configuration initiale
 void setup() {
@@ -69,9 +49,7 @@ void setup() {
   display.clearDisplay();
 
   // Initialisation du menu
-  LCDML.add(LCDML_0_1);
-  LCDML.add(LCDML_0_2);
-  LCDML.add(LCDML_0_3);
+  LCDML_setup(3, 1, 0, 0);
 }
 
 // Fonction pour afficher le menu
@@ -83,23 +61,23 @@ void displayMenu() {
   display.setCursor(0, 0);
   display.println(F("Menu Principal:"));
 
-  // Afficher les options du menu
-  LCDML.display();
+  // Afficher le menu
+  LCDML.loop();
   display.display();
 }
 
 // Fonction pour gérer les boutons
 void handleButtons() {
   if (digitalRead(BUTTON_UP_PIN) == LOW) {
-    LCDML.INPUT_up();
+    LCDML.BT_setup();
     delay(200);
   }
   if (digitalRead(BUTTON_DOWN_PIN) == LOW) {
-    LCDML.INPUT_down();
+    LCDML.BT_down();
     delay(200);
   }
   if (digitalRead(BUTTON_SELECT_PIN) == LOW) {
-    LCDML.INPUT_enter();
+    LCDML.BT_enter();
     delay(200);
   }
 }
@@ -108,7 +86,6 @@ void handleButtons() {
 void loop() {
   handleButtons();
   displayMenu();
-  LCDML.loop();
 }
 
 // Fonction pour le menu "Calendrier"
